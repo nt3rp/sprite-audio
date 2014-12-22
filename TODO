@@ -1,0 +1,5 @@
+- Do some simple analysis:
+    - Tell when a person's speed has increased or decreased
+    - Tell when a person has started / stopped talking
+    - Tell when a person has changed pitch (over some threshold)
+- Don't play audio from source (for now); just display
