@@ -7,9 +7,13 @@
         </style>
     </head>
     <body>
+        <p><strong>Volume:</strong> <span id="volume">0</span></p>
+        <!--
         <canvas class="sinewave" width="640" height="100"></canvas>
         <canvas class="frequency" width="640" height="100"></canvas>
+        -->
         <script type='text/javascript'>
+            /*
             var sinewaveCanvas, frequencyBarsCanvas,
                 sinewaveGraph, frequencyBarsGraph;
 
@@ -131,6 +135,91 @@
             }, function() {
                 console.log(arguments);
             });
+            */
+        </script>
+        <script type='text/javascript'>
+            navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia;
+            window.AudioContext = window.AudioContext || window.webkitAudioContext;
+
+            var Sprite = window.Sprite = (function() {
+                var self = {},
+                    handleMic,
+                    handleVolume,
+                    volume,
+                    error,
+                    config;
+
+                volume = function(data) {
+                    var values, average, length, i;
+
+                    values = 0;
+                    length = data.length;
+                    for (i = 0; i < length; i++) {
+                        values += data[i];
+                    }
+
+                    average = values / length;
+                    return average;
+                };
+
+                handleVolume = function (analyser) {
+                    var data, onFrame, prevVol;
+
+                    analyser.fftSize = 2048;
+                    data = new Uint8Array(analyser.frequencyBinCount);
+
+                    onFrame = function() {
+                        var vol;
+
+                        requestAnimationFrame(onFrame);
+                        analyser.getByteFrequencyData(data);
+
+                        prevVol = prevVol || 0;
+                        vol = volume(data);
+
+                        // TODO: Cleanup audio before trying to take volume?
+                        // TODO: Some sort of rate limiting (e.g. don't need to check on every frame
+                        // TODO: Only change volume if above some threshold.
+                        document.querySelector('#volume').innerText = vol;
+                        prevVol = vol;
+                    };
+                    onFrame();
+                };
+
+                handleMic = function (stream) {
+                    var audioContext, mediaStreamSource, analyser;
+
+                    audioContext = new AudioContext();
+                    mediaStreamSource = audioContext.createMediaStreamSource(stream);
+
+                    // Allows us to actually hear what we record; not strictly necessary when using a microphone
+                    mediaStreamSource.connect(audioContext.destination);
+
+                    analyser = audioContext.createAnalyser();
+                    mediaStreamSource.connect(analyser);
+
+                    handleVolume(analyser);
+                };
+
+                error = function () {
+                    console.log("There was some error getting a stream?", arguments);
+                };
+
+                self.Setup = function () {
+                    navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia;
+                    window.AudioContext = window.AudioContext || window.webkitAudioContext;
+                };
+
+                self.Start = function (conf) {
+                    config = conf || {};
+                    self.Setup();
+                    navigator.getUserMedia({audio:true}, handleMic, error);
+                };
+
+                return self;
+            }());
+
+            Sprite.Start();
         </script>
     </body>
 </html>
