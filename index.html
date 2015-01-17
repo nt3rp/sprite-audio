@@ -8,10 +8,11 @@
     </head>
     <body>
         <p><strong>Volume:</strong> <span id="volume">0</span></p>
+        <p><strong>Beats:</strong> <span id="beats">0</span></p>
         <!--
         <canvas class="sinewave" width="640" height="100"></canvas>
         -->
-        <canvas class="frequency" width="640" height="100"></canvas>
+        <canvas class="frequency" width="640" height="200"></canvas>
         <script type='text/javascript'>
             /*
             var sinewaveCanvas, frequencyBarsCanvas,
@@ -146,12 +147,13 @@
                     handleMic,
                     handleVolume,
                     frequencyBarsGraph,
+                    beatDetect,
                     volume,
                     error,
+                    sampleRate,
                     config;
 
                 // TODO: Pitch: Max(Average of X bars)?
-
                 volume = function(data) {
                     var values, average, length, i;
 
@@ -163,6 +165,26 @@
 
                     average = values / length;
                     return average;
+                };
+
+                // Lots of help from
+                // https://github.com/foxdog-studios/beetnik/blob/master/src/client/lib/sound_energy_beat_detector.coffee
+                // http://archive.gamedev.net/archive/reference/programming/features/beatdetection/index.html
+                // http://papers.traustikristjansson.info/?p=486
+                beatDetect = function (analyser) {
+                    // Analyser node is strictly for visualizations?
+                    var data, onFrame, bufferSize;
+
+                    analyser.fftSize = 2048;
+                    bufferSize = analyser.frequencyBinCount;
+                    data = new Uint8Array(analyser.frequencyBinCount);
+
+                    onFrame = function() {
+                        var i, instantEnergy, maxEnergy, energies;
+                        requestAnimationFrame(onFrame);
+                        // Is this PCM data, or not?
+                        analyser.getByteFrequencyData(data);
+                    }
                 };
 
                 handleVolume = function (analyser) {
@@ -198,7 +220,7 @@
                     WIDTH = canvas.width;
                     HEIGHT = canvas.height;
 
-                    analyser.fftSize = 2048;
+                    analyser.fftSize = 256;
                     bufferLength = analyser.frequencyBinCount;
                     dataArray = new Uint8Array(bufferLength);
 
@@ -230,22 +252,27 @@
                 };
 
                 handleMic = function (stream) {
-                    var audioContext, mediaStreamSource, analyser, analyser2;
+                    var audioContext, mediaStreamSource, analyser;
 
                     audioContext = new AudioContext();
                     mediaStreamSource = audioContext.createMediaStreamSource(stream);
+
+                    sampleRate = audioContext.sampleRate;
 
                     // Allows us to actually hear what we record; not strictly necessary when using a microphone
                     mediaStreamSource.connect(audioContext.destination);
 
                     analyser = audioContext.createAnalyser();
                     mediaStreamSource.connect(analyser);
+                    beatDetect(analyser);
 
-                    handleVolume(analyser);
+//                    analyser = audioContext.createAnalyser();
+//                    mediaStreamSource.connect(analyser);
+//                    handleVolume(analyser);
 
-                    analyser2 = audioContext.createAnalyser();
-                    mediaStreamSource.connect(analyser2);
-                    frequencyBarsGraph(analyser2);
+//                    analyser = audioContext.createAnalyser();
+//                    mediaStreamSource.connect(analyser);
+//                    frequencyBarsGraph(analyser);
                 };
 
                 error = function () {
