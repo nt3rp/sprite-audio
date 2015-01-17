@@ -10,8 +10,8 @@
         <p><strong>Volume:</strong> <span id="volume">0</span></p>
         <!--
         <canvas class="sinewave" width="640" height="100"></canvas>
-        <canvas class="frequency" width="640" height="100"></canvas>
         -->
+        <canvas class="frequency" width="640" height="100"></canvas>
         <script type='text/javascript'>
             /*
             var sinewaveCanvas, frequencyBarsCanvas,
@@ -145,9 +145,12 @@
                 var self = {},
                     handleMic,
                     handleVolume,
+                    frequencyBarsGraph,
                     volume,
                     error,
                     config;
+
+                // TODO: Pitch: Max(Average of X bars)?
 
                 volume = function(data) {
                     var values, average, length, i;
@@ -180,14 +183,54 @@
                         // TODO: Cleanup audio before trying to take volume?
                         // TODO: Some sort of rate limiting (e.g. don't need to check on every frame
                         // TODO: Only change volume if above some threshold.
+                        // TODO: Determine what the average overall volume is to get a better idea of how new time frame compares
                         document.querySelector('#volume').innerText = vol;
                         prevVol = vol;
                     };
                     onFrame();
                 };
 
+                frequencyBarsGraph = function (analyser) {
+                    var canvas, canvasCtx, WIDTH, HEIGHT, dataArray, draw, bufferLength;
+
+                    canvas = document.querySelector('.frequency');
+                    canvasCtx = canvas.getContext('2d');
+                    WIDTH = canvas.width;
+                    HEIGHT = canvas.height;
+
+                    analyser.fftSize = 2048;
+                    bufferLength = analyser.frequencyBinCount;
+                    dataArray = new Uint8Array(bufferLength);
+
+                    canvasCtx.clearRect(0, 0, WIDTH, HEIGHT);
+
+                    draw = function() {
+                        requestAnimationFrame(draw);
+
+                        analyser.getByteFrequencyData(dataArray);
+
+                        canvasCtx.fillStyle = 'rgb(0, 0, 0)';
+                        canvasCtx.fillRect(0, 0, WIDTH, HEIGHT);
+
+                        var barWidth = (WIDTH / bufferLength) * 2.5;
+                        var barHeight;
+                        var x = 0;
+
+                        for(var i = 0; i < bufferLength; i++) {
+                            barHeight = dataArray[i];
+
+                            canvasCtx.fillStyle = 'rgb(' + (barHeight+100) + ',50,50)';
+                            canvasCtx.fillRect(x,HEIGHT-barHeight/2,barWidth,barHeight/2);
+
+                            x += barWidth + 1;
+                        }
+                    };
+
+                    draw();
+                };
+
                 handleMic = function (stream) {
-                    var audioContext, mediaStreamSource, analyser;
+                    var audioContext, mediaStreamSource, analyser, analyser2;
 
                     audioContext = new AudioContext();
                     mediaStreamSource = audioContext.createMediaStreamSource(stream);
@@ -199,6 +242,10 @@
                     mediaStreamSource.connect(analyser);
 
                     handleVolume(analyser);
+
+                    analyser2 = audioContext.createAnalyser();
+                    mediaStreamSource.connect(analyser2);
+                    frequencyBarsGraph(analyser2);
                 };
 
                 error = function () {
