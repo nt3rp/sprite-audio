@@ -10,6 +10,30 @@
         canvas {
             border: 1px solid #000;
         }
+
+        .sprite {
+            width: 149px;
+            height: 150px;
+            background-image: url('img/example.png');
+            background-repeat: no-repeat;
+            background-position-y: -196px;
+            background-position-x: -23px;
+        }
+
+        @-webkit-keyframes idle {
+            100% { background-position: -1900px; }
+        }
+
+        .sprite.talking {
+            width: 193px;
+            background-position-y: -371px;
+            background-position-x: -34px;
+            -webkit-animation: talking 1s steps(8) infinite;
+        }
+
+        @-webkit-keyframes talking {
+            100% { background-position: -1544px -371px; }
+        }
     </style>
 </head>
 <body>
@@ -18,6 +42,7 @@
     <!--
     <canvas class="sinewave" width="640" height="100"></canvas>
     -->
+    <div class='sprite'></div>
     <canvas class="frequency" width="640" height="200"></canvas>
     <script type="text/javascript" src="js/app.min.js"></script>
 </body>

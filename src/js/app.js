@@ -1,3 +1,4 @@
+var _ = require('lodash');
 var volume = require('./plugins/analyser/volume');
 var frequency = require('./plugins/analyser/frequency');
 
@@ -15,8 +16,43 @@ var Sprite = window.Sprite = (function () {
         config;
 
     handleVolume = function (analyser) {
+        var pastVolumes = [];
+        var maxLength = 1024;
+        var faces = {
+            "loud": "(^O^)",
+            "normal": "(^-^)",
+            "quiet": "(-_-)"
+        };
+
         volume.average(analyser, function(value) {
-            document.querySelector('#volume').innerText = value;
+            // Normalize volume
+            if (pastVolumes.length > maxLength) {
+                pastVolumes.pop();
+            };
+            pastVolumes.push(value);
+
+            var max = _.max(pastVolumes);
+
+            var sprite = document.querySelector('.sprite');
+
+            var face;
+            switch (true) {
+                case _.inRange(value, max*0.25):
+                    face = 'quiet';
+                    sprite.classList.remove('talking');
+                    break;
+                case _.inRange(value, max*0.75. max):
+                    face = 'loud';
+                    break;
+                default:
+                    face = 'normal';
+                    sprite.classList.add('talking');
+                    break;
+            }
+
+            document.querySelector('#volume').innerText = faces[face];
+
+
         })
     };
 
