@@ -16,6 +16,9 @@ voices. However, I didn't feel like doing the animation by hand, so I started to
 > npm install
 ```
 
+Note: I have been using [this sprite sheet](http://www.court-records.net/sheets/DSsheet-phoenix.png) for experimenting 
+but for legal reasons it is not included in the project.
+
 ## API Reference
 
 TBD
@@ -31,6 +34,8 @@ Not at the moment, I'm afraid
 - https://github.com/foxdog-studios/beetnik/blob/master/src/client/lib/sound_energy_beat_detector.coffee
 - http://archive.gamedev.net/archive/reference/programming/features/beatdetection/index.html
 - http://papers.traustikristjansson.info/?p=486
+- https://wiki.mozilla.org/Audio_Data_API
+- https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API
 
 ## License
 
