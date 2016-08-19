@@ -36,6 +36,7 @@ Not at the moment, I'm afraid
 - http://papers.traustikristjansson.info/?p=486
 - https://wiki.mozilla.org/Audio_Data_API
 - https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API
+- http://gingertech.net/2011/05/01/html5-multi-track-audio-or-video/
 
 ## License
 
